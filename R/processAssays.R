@@ -157,6 +157,7 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
     
     # Extract and prepare metadata
     data_constant <- droplevels(as.data.table(as.data.frame(colData(sceObj)), keep.rownames = TRUE))
+    row.names(data_constant) <- data_constant$rn
     
     # Validate assays
     invalid_assays <- setdiff(assays, assayNames(sceObj))
@@ -299,10 +300,31 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
     )
 }
 
+# merge data_constant (data constant for all cell types)
+# with metadata(sceObj)$aggr_means (data that varies)
+#' @importFrom dplyr filter_at
+merge_metadata <- function(dataIn, md, cellType, by) {
+  # PASS R CMD check
+  cell <- NULL
+
+  data <- merge(dataIn,
+    dplyr::filter_at(md, by[1], ~ . == cellType),
+    by.x = "row.names",
+    by.y = by[2]
+  )
+  rownames(data) <- data$Row.names
+  id <- rownames(dataIn)[rownames(dataIn) %in% rownames(data)]
+  data <- data[id, , drop = FALSE]
+  droplevels(data)
+}
+
 # Optimized metadata merging using data.table
 merge_metadata_dt <- function(dataIn, md, cellType, by) {
     suppressMessages(require(data.table))
-    dt1 <- as.data.table(dataIn, keep.rownames = TRUE)
+    if(!inherits(dataIn, 'data.table'))
+      dt1 <- as.data.table(dataIn, keep.rownames = TRUE)
+    else
+      dt1 <- dataIn
     dt2 <- as.data.table(md)
     
     setkey(dt2, by[1])
