@@ -300,6 +300,7 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
 
 # Optimized metadata merging using data.table
 merge_metadata_dt <- function(dataIn, md, cellType, by) {
+    require(data.table)
     dt1 <- as.data.table(dataIn, keep.rownames = TRUE)
     dt2 <- as.data.table(md)
     
