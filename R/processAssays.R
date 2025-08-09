@@ -186,7 +186,7 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
         pb <- txtProgressBar(min = 0, max = length(assays), style = 3)
     }
     
-    resList <- bplapply(seq_along(assays), function(i) {
+    resList <- BiocParallel::bplapply(seq_along(assays), function(i) {
         k <- assays[i]
         if (!quiet) setTxtProgressBar(pb, i)
         
