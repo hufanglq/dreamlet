@@ -65,7 +65,7 @@ processOneAssay <- function(y, formula, data, n.cells, min.cells = 5, min.count 
     if (sum(include) == 0) return(NULL)
     
     # Efficient subsetting
-    y <- y[, include, drop = FALSE]
+    y <- y[, colnames(y)[include], drop = FALSE]
     data <- droplevels(data[include, , drop = FALSE])
     
     if (nrow(data) < min.samples || nrow(y) == 0) return(NULL)
@@ -156,7 +156,7 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
     }
     
     # Extract and prepare metadata
-    data_constant <- droplevels(as.data.table(as.data.frame(colData(sceObj))))
+    data_constant <- droplevels(as.data.table(as.data.frame(colData(sceObj)), keep.rownames = TRUE))
     
     # Validate assays
     invalid_assays <- setdiff(assays, assayNames(sceObj))
@@ -187,6 +187,7 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
     }
     
     resList <- BiocParallel::bplapply(seq_along(assays), function(i) {
+        suppressMessages(require(stats))
         k <- assays[i]
         if (!quiet) setTxtProgressBar(pb, i)
         
@@ -300,7 +301,7 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
 
 # Optimized metadata merging using data.table
 merge_metadata_dt <- function(dataIn, md, cellType, by) {
-    require(data.table)
+    suppressMessages(require(data.table))
     dt1 <- as.data.table(dataIn, keep.rownames = TRUE)
     dt2 <- as.data.table(md)
     
