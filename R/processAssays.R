@@ -327,7 +327,7 @@ merge_metadata_dt <- function(dataIn, md, cellType, by) {
       dt1 <- dataIn
     dt2 <- as.data.table(md)
     
-    setkey(dt2, by[1])
+    setkeyv(dt2, by[1])
     dt2 <- dt2[get(by[1]) == cellType]
     
     result <- dt1[dt2, on = c("rn" = by[2])]
