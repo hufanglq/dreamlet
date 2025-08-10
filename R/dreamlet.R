@@ -754,7 +754,7 @@ setMethod(
     suppressMessages(require(future))
     suppressMessages(require(furrr))
     
-    if (Sys.info()['sysname'] == "Windows") {
+    if (Sys.info()['sysname'] == "Windows" | identical(.Platform$GUI, "RStudio")) {
       plan(multisession, workers = num_workers)
     } else {
       plan(multicore, workers = num_workers)
