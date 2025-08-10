@@ -44,7 +44,7 @@
 #' @export
 setGeneric(
   "fitVarPart",
-  function(x, formula, data = colData(x), assays = assayNames(x), quiet = FALSE, BPPARAM = SerialParam(), ...) {
+  function(x, formula, data = colData(x), assays = assayNames(x), quiet = FALSE, BPPARAM = SerialParam(), num_workers = 4L, ...) {
     standardGeneric("fitVarPart")
   }
 )
@@ -87,8 +87,17 @@ setMethod(
       data_constant <- droplevels(data_constant[-idx, , drop = FALSE])
     }
 
+    suppressMessages(require(future))
+    suppressMessages(require(furrr))
+    
+    if (Sys.info()['sysname'] == "Windows") {
+      plan(multisession, workers = num_workers)
+    } else {
+      plan(multiprocess, workers = num_workers)
+    }
+
     # for each assay
-    resList <- lapply(assays, function(k) {
+    resList <- future_map(assays, function(k) {
       if (!quiet) message("  ", k, "...", appendLF = FALSE)
       startTime <- Sys.time()
 
