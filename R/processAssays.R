@@ -145,7 +145,7 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
                          min.cells = 5, min.count = 5, min.samples = 4, 
                          min.prop = .4, isCounts = TRUE, normalize.method = "TMM", 
                          span = "auto", quiet = FALSE, weightsList = NULL, 
-                         BPPARAM = SerialParam(), cache = TRUE, ...) {
+                         BPPARAM = SerialParam(), num_workers = 4L, cache = TRUE, ...) {
     
     # Input validation
     stopifnot(is(sceObj, "SingleCellExperiment"))
@@ -186,8 +186,17 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
         message("Processing ", length(assays), " assays...")
         pb <- txtProgressBar(min = 0, max = length(assays), style = 3)
     }
+
+    suppressMessages(require(future))
+    suppressMessages(require(furrr))
     
-    resList <- BiocParallel::bplapply(seq_along(assays), function(i) {
+    if (Sys.info()['sysname'] == "Windows") {
+      plan(multisession, workers = num_workers)
+    } else {
+      plan(multiprocess, workers = num_workers)
+    }
+    
+    resList <- future_map(seq_along(assays), function(i) {
         suppressMessages(require(stats))
         k <- assays[i]
         if (!quiet) setTxtProgressBar(pb, i)
@@ -240,7 +249,7 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
         }
         
         return(result)
-    }, BPPARAM = BPPARAM)
+    })
     
     if (!quiet) close(pb)
     
