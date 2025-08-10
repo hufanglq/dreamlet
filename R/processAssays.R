@@ -157,7 +157,7 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
     
     # Extract and prepare metadata
     data_constant <- droplevels(as.data.table(as.data.frame(colData(sceObj)), keep.rownames = TRUE))
-    row.names(data_constant) <- data_constant$rn
+    rownames(data_constant) <- data_constant$rn
     
     # Validate assays
     invalid_assays <- setdiff(assays, assayNames(sceObj))
@@ -206,7 +206,7 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
         n.cells <- n.cells_full[colnames(y), k, drop = FALSE]
         
         # Merge metadata efficiently using data.table
-        data <- merge_metadata_dt(
+        data <- merge_metadata(
             data_constant,
             get_metadata_aggr_means(sceObj),
             k,
@@ -245,7 +245,7 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
         )
         
         if (!quiet) {
-            message(k, " processed in ", format(Sys.time() - startTime, digits = 2))
+            message("\n", k, " processed in ", format(Sys.time() - startTime, digits = 2))
         }
         
         return(result)
@@ -298,9 +298,11 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
     }
     
     # Return results
+    data_constant <- as.data.frame(data_constant, row.names = data_constant$rn)
+    data_constant$rn <- NULL
     new("dreamletProcessedData",
         resList,
-        data = as.data.frame(data_constant),
+        data = data_constant,
         metadata = get_metadata_aggr_means(sceObj),
         by = metadata(sceObj)$agg_pars$by,
         df_details = as.data.frame(df_details),
@@ -340,10 +342,9 @@ merge_metadata_dt <- function(dataIn, md, cellType, by) {
     dt2 <- dt2[get(by[1]) == cellType]
     
     result <- dt1[dt2, on = c("rn" = by[2])]
-    setDF(result)
-    rownames(result) <- result$rn
+    result <- as.data.frame(result, row.names = result$rn)
     result$rn <- NULL
     
     return(droplevels(result))
 }
- 
+
