@@ -93,7 +93,7 @@ setMethod(
     if (Sys.info()['sysname'] == "Windows") {
       plan(multisession, workers = num_workers)
     } else {
-      plan(multiprocess, workers = num_workers)
+      plan(multicore, workers = num_workers)
     }
 
     # for each assay
