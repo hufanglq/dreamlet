@@ -727,7 +727,7 @@ setGeneric(
 #' @aliases dreamlet,dreamletProcessedData-method
 setMethod(
   "dreamlet", "dreamletProcessedData",
-  function(x, formula, data = colData(x), assays = assayNames(x), contrasts = NULL, min.cells = 10, robust = FALSE, quiet = FALSE, BPPARAM = SerialParam(), use.eBayes = TRUE, ...) {
+  function(x, formula, data = colData(x), assays = assayNames(x), contrasts = NULL, min.cells = 10, robust = FALSE, quiet = FALSE, BPPARAM = SerialParam(), num_workers = 4L, use.eBayes = TRUE, ...) {
     # checks
     stopifnot(is(formula, "formula"))
 
@@ -751,8 +751,17 @@ setMethod(
       data_constant <- droplevels(data_constant[-idx, , drop = FALSE])
     }
 
+    suppressMessages(require(future))
+    suppressMessages(require(furrr))
+    
+    if (Sys.info()['sysname'] == "Windows") {
+      plan(multisession, workers = num_workers)
+    } else {
+      plan(multiprocess, workers = num_workers)
+    }
+
     # for each assay
-    resList <- lapply(assays, function(k) {
+    resList <- future_map(assays, function(k) {
       if (!quiet) message("  ", k, "...", appendLF = FALSE)
       startTime <- Sys.time()
 
