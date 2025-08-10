@@ -206,7 +206,7 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
         n.cells <- n.cells_full[colnames(y), k, drop = FALSE]
         
         # Merge metadata efficiently using data.table
-        data <- merge_metadata(
+        data <- merge_metadata_dt(
             data_constant,
             get_metadata_aggr_means(sceObj),
             k,
