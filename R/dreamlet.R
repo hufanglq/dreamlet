@@ -751,13 +751,15 @@ setMethod(
       data_constant <- droplevels(data_constant[-idx, , drop = FALSE])
     }
 
-    suppressMessages(require(future))
     suppressMessages(require(furrr))
-    
-    if (Sys.info()['sysname'] == "Windows" | identical(.Platform$GUI, "RStudio")) {
-      plan(multisession, workers = num_workers)
+    if (num_workers > 1){ 
+      if (Sys.info()['sysname'] == "Windows") {
+        plan(multisession, workers = num_workers)
+      } else {
+        plan(multicore, workers = num_workers)
+      }
     } else {
-      plan(multicore, workers = num_workers)
+      plan(sequential)
     }
 
     # for each assay
