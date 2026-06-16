@@ -189,10 +189,10 @@ processAssays <- function(sceObj, formula, assays = assayNames(sceObj),
 
     suppressMessages(require(furrr))
     if (num_workers > 1){ 
-      if (Sys.info()['sysname'] == "Windows") {
-        plan(multisession, workers = num_workers)
-      } else {
+      if (parallelly::supportsMulticore()) {
         plan(multicore, workers = num_workers)
+      } else {
+        plan(multisession, workers = num_workers)
       }
     } else {
       plan(sequential)
